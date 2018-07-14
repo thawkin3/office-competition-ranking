@@ -2,6 +2,31 @@ const passport = require('passport');
 const bcrypt = require('bcrypt');
 var express = require('express');
 var router = express.Router();
+var mongoose = require('mongoose');
+
+const auth = require('../auth.js');
+
+
+// Mongoose setup for MongoDB
+mongoose.connect('mongodb://localhost/officeCompetitionRankingDB');
+var db = mongoose.connection;
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function() {
+	console.log('Connected to MongoDB');
+	// auth(app, db);
+    // indexRouter(app, db);
+});
+
+var userSchema = new mongoose.Schema({
+	Username: String,
+	Password: String,
+	EloRating: Number,
+	GamesPlayed: Number,
+	Wins: Number,
+	Losses: Number,
+});
+
+var User = mongoose.model('User', userSchema);
 
 // module.exports = function(app, db) {
 
@@ -62,35 +87,43 @@ var router = express.Router();
     });
 
     router.post('/api/register', (req, res, next) => {
+    	console.log('inside api/register route');
+    	console.log('req.body:', req.body);
         var hash = bcrypt.hashSync(req.body.password, 8);
-        db.collection('users').findOne({
-            username: req.body.username
-        }, function(err, user) {
+        console.log('hash:', hash);
+        User.findOne({ Username: req.body.username }, function(err, user) {
             if (err) {
+            	console.log('error:', err);
                 next(err);
             } else if (user) {
+            	console.log('found an existing user: ', user);
                 res.redirect('/');
             } else {
-                db.collection('users').insertOne({
-                        username: req.body.username,
-                        password: hash
-                    },
-                    (err, doc) => {
-                        if (err) {
-                            res.redirect('/');
-                        } else {
-                            next(null, user);
-                        }
-                    }
-                )
+            	var newUser = new User({
+            		Username: req.body.username,
+            		Password: hash,
+            		EloRating: 400,
+            		GamesPlayed: 0,
+            		Wins: 0,
+            		Losses: 0,
+            	});
+            	console.log(newUser);
+            	newUser.save(function(err, createdUser) {
+					if (err) {
+						console.log('error in the save:', err);
+						res.sendStatus(500);
+					}
+					console.log(createdUser);
+					next(null, createdUser);
+				});
             }
-        })
+        });
     },
     passport.authenticate('local', {
         failureRedirect: '/'
     }),
     (req, res, next) => {
-        res.redirect('/profile');
+        res.redirect('/leaderboard');
     });
 
     router.route('/api/logout')
