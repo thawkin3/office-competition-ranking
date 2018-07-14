@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Record game | Office Competition Ranking System</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+        <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+        <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Raleway:400, 600" />
+        <link rel="stylesheet" type="text/css" href="../stylesheets/style.css" />
+    </head>
+    <body>
+        <header id="header" class="header">
+            <nav id="nav-bar" class="nav navbar">
+                <div class="container">
+                    <a href="/logout" class="nav-link navbar-right">Log out</a>
+                    <a href="/recordGame" class="nav-link navbar-right active">Record game</a>
+                    <a href="/Leaderboard" class="nav-link navbar-right">Leaderboard</a>
+                </div>
+            </nav>
+            <div class="container">
+                <h1>Record the results of your game</h1>
+            </div>
+        </header>
+        <main>
+            <div class="container">
+                <p id="requiredInfo">(<span class="required">*</span> indicates a required field)</p>
+                <form id="record-game-form" class="form-horizontal">
+                    <div class="form-group">
+                        <label for="organization" class="col-sm-4 control-label" id="organization-label">Organization<span class="required">*</span></label>
+                        <div class="col-sm-6">
+                            <select class="form-control" id="organization">
+                                <option selected value="Younique">Younique</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="game" class="col-sm-4 control-label" id="game-label">Game<span class="required">*</span></label>
+                        <div class="col-sm-6">
+                            <select class="form-control" id="game">
+                                <option selected value="Younique">Ping pong</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="playerOne" class="col-sm-4 control-label" id="playerOne-label">Player one<span class="required">*</span></label>
+                        <div class="col-sm-6">
+                            <select class="form-control" id="playerOne">
+                                <option disabled selected value>Select a player</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="playerTwo" class="col-sm-4 control-label" id="playerTwo-label">Player two<span class="required">*</span></label>
+                        <div class="col-sm-6">
+                            <select class="form-control" id="playerTwo">
+                                <option disabled selected value>Select a player</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <span class="col-sm-4 control-label" id="outcome-span-label">Winner<span class="required">*</span></span>
+                        <div class="col-sm-6">
+                            <div class="radio">
+                                <label>
+                                    <input type="radio" name="winner" id="playerOne" value="playerOne" />
+                                    Player one
+                                </label>
+                            </div>
+                            <div class="radio">
+                                <label>
+                                    <input type="radio" name="winner" id="playerTwo" value="playerTwo" />
+                                    Player two
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-12 submitRow">
+                            <button type="submit" class="btn btn-primary" id="submit">Record game</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </body>
+</html>

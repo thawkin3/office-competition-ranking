@@ -1,0 +1,94 @@
+html,
+body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+	font-family: 'Raleway', Helvetica, Arial, sans-serif;
+}
+
+p {
+	margin: 10px;
+}
+
+/* Header */
+
+.header {
+	margin: auto;
+	text-align: center;
+}
+
+.header h1 {
+	margin: 60px auto 20px auto;
+}
+
+.header p {
+	margin-bottom: 40px;
+}
+
+/* Navigation */
+
+.nav {
+    margin: 0;
+    padding: 20px 0;
+    background-color: #333;
+    border-radius: 0;
+}
+
+.nav a {
+    font-family: 'Raleway', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    display: inline-block;
+    padding: 5px 20px;
+    color: #fff;
+    text-decoration: none;
+    transition: color 0.5s;
+}
+
+.nav a:hover {
+    color: #aaa;
+}
+
+.nav a.active {
+	color: #5bc0de;
+}
+
+.nav a.active:hover {
+	color: #5bc0de;
+}
+
+main {
+	text-align: center;
+}
+
+/* Forms */
+
+form {
+	text-align: left;
+}
+
+#requiredInfo {
+    font-size: 12px;
+}
+
+span.required {
+    color: #ff0000;
+}
+
+span.control-label {
+    display: inline-block;
+    max-width: 100%;
+    margin-bottom: 5px;
+    font-weight: 700;
+}
+
+.submitRow {
+	text-align: center;
+}
+
+#submit {
+	margin-top: 20px;
+}
+
