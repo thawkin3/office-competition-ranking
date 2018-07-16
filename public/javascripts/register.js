@@ -1,26 +1,31 @@
 $(document).ready(function() {
-	console.log('ready!');
-	var passwordsDoNotMatch = false;
-
 	$('#register-form').on('submit', function(e) {
 		e.preventDefault();
-		console.log('submitting form');
-		console.log(e);
 		if ($('#password').val() !== $('#confirmPassword').val()) {
-			passwordsDoNotMatch = true;
+			$('#passwordHelpBlock').show().parent().addClass('has-error');
 			return false;
+		} else {
+			$('#passwordHelpBlock').hide().parent().removeClass('has-error');
 		}
+
 		var jsonData = {
+			organization: $('#organization').val(),
+			firstName: $('#firstName').val(),
+			lastName: $('#lastName').val(),
 			username: $('#username').val(),
 			password: $('#password').val(),
 		};
+
 		return $.post('/api/register', jsonData)
 			.done(function(response) {
-				console.log(response);
 				window.location.href = '/leaderboard';
 			})
-			.fail(function(error) {
-				console.log(error);
+			.fail(function(xhr, status, error) {
+				if (xhr.responseJSON.error === 'Username already exists') {
+					$('#usernameHelpBlock').show().parent().addClass('has-error');
+				} else {
+					$('#usernameHelpBlock').hide().parent().removeClass('has-error');
+				}
 			});
 	});
 });

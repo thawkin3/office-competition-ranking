@@ -6,6 +6,8 @@
         <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
         <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Raleway:400, 600" />
         <link rel="stylesheet" type="text/css" href="../stylesheets/style.css" />
+        <script type="text/javascript" src="//code.jquery.com/jquery-3.3.1.min.js"></script>
+        <script type="text/javascript" src="../javascripts/login.js"></script>
     </head>
     <body>
         <header id="header" class="header">
@@ -34,6 +36,7 @@
                         <label for="password" class="col-sm-4 control-label" id="password-label">Password<span class="required">*</span></label>
                         <div class="col-sm-6">
                             <input type="password" class="form-control" id="password" name="password" placeholder="Password" required />
+                            <span id="loginErrorHelpBlock" class="help-block">Username or password is incorrect.</span>
                         </div>
                     </div>
                     <div class="form-group">

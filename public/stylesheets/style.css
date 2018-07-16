@@ -92,3 +92,9 @@ span.control-label {
 	margin-top: 20px;
 }
 
+#usernameHelpBlock,
+#passwordHelpBlock,
+#loginErrorHelpBlock {
+    display: none;
+}
+
