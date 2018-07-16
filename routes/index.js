@@ -39,6 +39,7 @@ var gameSchema = new mongoose.Schema({
 	PlayerOne: String,
 	PlayerTwo: String,
 	Winner: String,
+	RecordedBy: String,
 });
 
 var Game = mongoose.model('Game', gameSchema);
@@ -103,6 +104,15 @@ function ensureNotAuthenticated(req, res, next) {
         return next();
     }
     res.redirect('/leaderboard');
+};
+
+// Helper auth method to ensure that the user is currently logged in when making API requests
+// If they are not logged in, send an unauthorized error
+function ensureAuthenticatedForApi(req, res, next) {
+    if (req.isAuthenticated()) {
+        return next();
+    }
+    res.status(401).json({ error: 'You are currently logged in' });
 };
 
 /***********************
@@ -177,9 +187,8 @@ router.post('/api/logout', (req, res, next) => {
     res.redirect('/');
 });
 
-router.get('/api/users', (req, res, next) => {
+router.get('/api/users', ensureAuthenticatedForApi, (req, res, next) => {
 	User.find({}, 'Username FirstName LastName', (err, users) => {
-		console.log(users);
 		if (err) {
 			res.status(500).json({ error: 'Error getting users' });
 		}
@@ -187,13 +196,26 @@ router.get('/api/users', (req, res, next) => {
 	});
 });
 
-router.post('/api/recordGame', (req, res, next) => {
+router.get('/api/usersExceptMe', ensureAuthenticatedForApi, (req, res, next) => {
+	User.find({ Username: { $ne: req.user.Username } }, 'Username FirstName LastName', (err, users) => {
+		if (err) {
+			res.status(500).json({ error: 'Error getting users' });
+		}
+		res.json({ users: users });
+	});
+});
+
+router.post('/api/recordGame', ensureAuthenticatedForApi, (req, res, next) => {
+	if (req && req.body && (!req.body.organization || !req.body.game || !req.body.opponent || !req.body.winner)) {
+		res.status(400).json({ error: 'Required fields are missing' });
+	}
 	var newGame = new Game({
 		Organization: req.body.organization,
 		Game: req.body.game,
-		PlayerOne: req.body.playerOne,
-		PlayerTwo: req.body.playerTwo,
-		Winner: req.body.winner,
+		PlayerOne: req.user.Username,
+		PlayerTwo: req.body.opponent,
+		Winner: req.body.winner === 'won' ? req.user.Username : req.body.opponent,
+		RecordedBy: req.user.Username,
 	});
 	newGame.save(function(err, recordedGame) {
 		if (err) {
