@@ -6,6 +6,8 @@ const bcrypt = require('bcrypt');
 
 module.exports = function(app, db) {
 
+    console.log('auth.js file function called!');
+
     app.use(session({
         secret: process.env.SESSION_SECRET,
         resave: true,
@@ -19,13 +21,9 @@ module.exports = function(app, db) {
     });
 
     passport.deserializeUser((id, done) => {
-        db.collection('users').findOne({
-                _id: new ObjectID(id)
-            },
-            (err, doc) => {
-                done(null, doc);
-            }
-        );
+        User.findById(id, (err, user) => {
+            done(err, user);
+        });
     });
 
     passport.use(new LocalStrategy(

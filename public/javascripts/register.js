@@ -17,6 +17,7 @@ $(document).ready(function() {
 		return $.post('/api/register', jsonData)
 			.done(function(response) {
 				console.log(response);
+				window.location.href = '/leaderboard';
 			})
 			.fail(function(error) {
 				console.log(error);
