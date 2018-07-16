@@ -18,7 +18,7 @@ $(document).ready(function() {
 
 		return $.post('/api/register', jsonData)
 			.done(function(response) {
-				window.location.href = '/leaderboard';
+				window.location.href = '/recordGame';
 			})
 			.fail(function(xhr, status, error) {
 				if (xhr.responseJSON.error === 'Username already exists') {

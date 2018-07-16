@@ -33,6 +33,16 @@ var userSchema = new mongoose.Schema({
 
 var User = mongoose.model('User', userSchema);
 
+var gameSchema = new mongoose.Schema({
+	Organization: String,
+	Game: String,
+	PlayerOne: String,
+	PlayerTwo: String,
+	Winner: String,
+});
+
+var Game = mongoose.model('Game', gameSchema);
+
 /***********************
 *** Authentication *****
 ***********************/
@@ -57,9 +67,7 @@ passport.deserializeUser((id, done) => {
 
 passport.use(new LocalStrategy(
     function(username, password, done) {
-        db.collection('users').findOne({
-            Username: username
-        }, function(err, user) {
+        User.findOne({ Username: username }, function(err, user) {
             console.log('User ' + username + ' attempted to log in.');
             if (err) {
             	console.log('there was an error authenticating');
@@ -149,7 +157,6 @@ router.post('/api/register', (req, res, next) => {
         	});
         	newUser.save(function(err, createdUser) {
 				if (err) {
-					console.log('error in the save:', err);
 					res.status(500).json({ error: 'Error saving new user' });
 				}
 				next(null, createdUser);
@@ -158,16 +165,42 @@ router.post('/api/register', (req, res, next) => {
     });
 },
 passport.authenticate('local', {
-	successRedirect: '/leaderboard',
+	successRedirect: '/recordGame',
 }));
 
 router.post('/api/login', passport.authenticate('local', {
-	successRedirect: '/leaderboard',
+	successRedirect: '/recordGame',
 }));
 
 router.post('/api/logout', (req, res, next) => {
     req.logout();
     res.redirect('/');
+});
+
+router.get('/api/users', (req, res, next) => {
+	User.find({}, 'Username FirstName LastName', (err, users) => {
+		console.log(users);
+		if (err) {
+			res.status(500).json({ error: 'Error getting users' });
+		}
+		res.json({ users: users });
+	});
+});
+
+router.post('/api/recordGame', (req, res, next) => {
+	var newGame = new Game({
+		Organization: req.body.organization,
+		Game: req.body.game,
+		PlayerOne: req.body.playerOne,
+		PlayerTwo: req.body.playerTwo,
+		Winner: req.body.winner,
+	});
+	newGame.save(function(err, recordedGame) {
+		if (err) {
+			res.status(500).json({ error: 'Error saving the game' });
+		}
+		res.json(recordedGame);
+	});
 });
 
 // router.use((req, res, next) => {

@@ -11,7 +11,7 @@ $(document).ready(function() {
 
 		return $.post('/api/login', jsonData)
 			.done(function(response) {
-				window.location.href = '/leaderboard';
+				window.location.href = '/recordGame';
 			})
 			.fail(function(xhr, status, error) {
 				$('#loginErrorHelpBlock').show();

@@ -94,7 +94,8 @@ span.control-label {
 
 #usernameHelpBlock,
 #passwordHelpBlock,
-#loginErrorHelpBlock {
+#loginErrorHelpBlock,
+#playersHelpBlock {
     display: none;
 }
 
