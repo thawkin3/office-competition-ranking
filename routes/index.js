@@ -40,6 +40,7 @@ var gameSchema = new mongoose.Schema({
 	PlayerTwo: String,
 	Winner: String,
 	RecordedBy: String,
+	DateRecorded: Date,
 });
 
 var Game = mongoose.model('Game', gameSchema);
@@ -56,14 +57,10 @@ router.use(session({
 router.use(passport.initialize());
 router.use(passport.session());
 
-passport.serializeUser((user, done) => {
-    done(null, user._id);
-});
+passport.serializeUser((user, done) => done(null, user._id));
 
 passport.deserializeUser((id, done) => {
-    User.findById(id, (err, user) => {
-        done(err, user);
-    });
+    User.findById(id, (err, user) => done(err, user));
 });
 
 passport.use(new LocalStrategy(
@@ -94,7 +91,7 @@ function ensureAuthenticated(req, res, next) {
     if (req.isAuthenticated()) {
         return next();
     }
-    res.redirect('/');
+    return res.redirect('/');
 };
 
 // Helper auth method to ensure that the user is NOT currently logged in
@@ -103,7 +100,7 @@ function ensureNotAuthenticated(req, res, next) {
     if (!req.isAuthenticated()) {
         return next();
     }
-    res.redirect('/leaderboard');
+    return res.redirect('/leaderboard');
 };
 
 // Helper auth method to ensure that the user is currently logged in when making API requests
@@ -112,7 +109,7 @@ function ensureAuthenticatedForApi(req, res, next) {
     if (req.isAuthenticated()) {
         return next();
     }
-    res.status(401).json({ error: 'You are currently logged in' });
+    return res.status(401).json({ error: 'You are currently logged in' });
 };
 
 /***********************
@@ -152,7 +149,7 @@ router.post('/api/register', (req, res, next) => {
         if (err) {
             next(err);
         } else if (user) {
-            res.status(401).json({ error: 'Username already exists' });
+            return res.status(401).json({ error: 'Username already exists' });
         } else {
         	var newUser = new User({
         		Organization: req.body.organization,
@@ -167,9 +164,9 @@ router.post('/api/register', (req, res, next) => {
         	});
         	newUser.save(function(err, createdUser) {
 				if (err) {
-					res.status(500).json({ error: 'Error saving new user' });
+					return res.status(500).json({ error: 'Error saving new user' });
 				}
-				next(null, createdUser);
+				return next(null, createdUser);
 			});
         }
     });
@@ -184,44 +181,61 @@ router.post('/api/login', passport.authenticate('local', {
 
 router.post('/api/logout', (req, res, next) => {
     req.logout();
-    res.redirect('/');
+    return res.redirect('/');
 });
 
 router.get('/api/users', ensureAuthenticatedForApi, (req, res, next) => {
 	User.find({}, 'Username FirstName LastName', (err, users) => {
 		if (err) {
-			res.status(500).json({ error: 'Error getting users' });
+			return res.status(500).json({ error: 'Error getting users' });
 		}
-		res.json({ users: users });
+		return res.json({ users: users });
 	});
 });
 
 router.get('/api/usersExceptMe', ensureAuthenticatedForApi, (req, res, next) => {
 	User.find({ Username: { $ne: req.user.Username } }, 'Username FirstName LastName', (err, users) => {
 		if (err) {
-			res.status(500).json({ error: 'Error getting users' });
+			return res.status(500).json({ error: 'Error getting users' });
 		}
-		res.json({ users: users });
+		return res.json({ users: users });
 	});
 });
 
 router.post('/api/recordGame', ensureAuthenticatedForApi, (req, res, next) => {
 	if (req && req.body && (!req.body.organization || !req.body.game || !req.body.opponent || !req.body.winner)) {
-		res.status(400).json({ error: 'Required fields are missing' });
+		return res.status(400).json({ error: 'Required fields are missing' });
 	}
+	const winnerUsername = req.body.winner === 'won' ? req.user.Username : req.body.opponent;
+	const loserUsername = req.body.winner === 'won' ? req.body.opponent : req.user.Username;
 	var newGame = new Game({
 		Organization: req.body.organization,
 		Game: req.body.game,
 		PlayerOne: req.user.Username,
 		PlayerTwo: req.body.opponent,
-		Winner: req.body.winner === 'won' ? req.user.Username : req.body.opponent,
+		Winner: winnerUsername,
 		RecordedBy: req.user.Username,
+		DateRecorded: new Date(),
 	});
 	newGame.save(function(err, recordedGame) {
 		if (err) {
-			res.status(500).json({ error: 'Error saving the game' });
+			return res.status(500).json({ error: 'Error saving the game' });
 		}
-		res.json(recordedGame);
+		User.findOneAndUpdate({ Username: winnerUsername }, { $inc: { GamesPlayed: 1, Wins: 1 }}, (err, winnerUser) => {
+			if (err) {
+				return res.status(500).json({ error: 'Error updating the winner' });
+			}
+			User.findOneAndUpdate({ Username: loserUsername }, { $inc: { GamesPlayed: 1, Losses: 1 }}, (err, loserUser) => {
+				if (err) {
+					return res.status(500).json({ error: 'Error updating the winner' });
+				}
+				return res.json({
+					game: recordedGame,
+					winner: winnerUser,
+					loser: loserUser,
+				});
+			});
+		});
 	});
 });
 
