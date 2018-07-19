@@ -239,6 +239,18 @@ router.post('/api/recordGame', ensureAuthenticatedForApi, (req, res, next) => {
 	});
 });
 
+router.get('/api/games/:organization/:game', ensureAuthenticatedForApi, (req, res, next) => {
+	if (!req.params.organization || !req.params.game) {
+		return res.status(400).json({ error: 'Required fields are missing' });
+	}
+	Game.find({ Organization: req.params.organization, Game: req.params.game }, (err, games) => {
+		if (err) {
+			return res.status(500).json({ error: 'Error getting games' });
+		}
+		return res.json({ games: games });
+	});
+});
+
 // router.use((req, res, next) => {
 //     res.status(404)
 //         .type('text')
