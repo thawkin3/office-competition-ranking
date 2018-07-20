@@ -172,7 +172,7 @@ router.post('/api/register', (req, res, next) => {
     });
 },
 passport.authenticate('local', {
-	successRedirect: '/recordGame',
+	successRedirect: '/leaderboard',
 }));
 
 router.post('/api/login', passport.authenticate('local', {
