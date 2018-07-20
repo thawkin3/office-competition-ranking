@@ -286,22 +286,6 @@ router.post('/api/recordGame', ensureAuthenticatedForApi, (req, res, next) => {
 				});
 			});
 		});
-
-		// User.findOneAndUpdate({ Username: winnerUsername }, { $inc: { GamesPlayed: 1, Wins: 1 }}, (err, winnerUser) => {
-		// 	if (err) {
-		// 		return res.status(500).json({ error: 'Error updating the winner' });
-		// 	}
-		// 	User.findOneAndUpdate({ Username: loserUsername }, { $inc: { GamesPlayed: 1, Losses: 1 }}, (err, loserUser) => {
-		// 		if (err) {
-		// 			return res.status(500).json({ error: 'Error updating the winner' });
-		// 		}
-		// 		return res.json({
-		// 			game: recordedGame,
-		// 			winner: winnerUser,
-		// 			loser: loserUser,
-		// 		});
-		// 	});
-		// });
 	});
 });
 
