@@ -157,7 +157,7 @@ router.post('/api/register', (req, res, next) => {
         		LastName: req.body.lastName,
         		Username: req.body.username,
         		Password: hash,
-        		EloRating: 400,
+        		EloRating: 1200,
         		GamesPlayed: 0,
         		Wins: 0,
         		Losses: 0,
@@ -245,21 +245,63 @@ router.post('/api/recordGame', ensureAuthenticatedForApi, (req, res, next) => {
 		if (err) {
 			return res.status(500).json({ error: 'Error saving the game' });
 		}
-		User.findOneAndUpdate({ Username: winnerUsername }, { $inc: { GamesPlayed: 1, Wins: 1 }}, (err, winnerUser) => {
+
+		User.findOne({ Username: winnerUsername }, (err, winnerUser) => {
 			if (err) {
-				return res.status(500).json({ error: 'Error updating the winner' });
+				return res.status(500).json({ error: 'Error getting the winner' });
 			}
-			User.findOneAndUpdate({ Username: loserUsername }, { $inc: { GamesPlayed: 1, Losses: 1 }}, (err, loserUser) => {
+
+			User.findOne({ Username: loserUsername }, (err, loserUser) => {
 				if (err) {
-					return res.status(500).json({ error: 'Error updating the winner' });
+					return res.status(500).json({ error: 'Error getting the loser' });
 				}
-				return res.json({
-					game: recordedGame,
-					winner: winnerUser,
-					loser: loserUser,
+
+				const newRatings = calculateNewEloRatings(winnerUser.EloRating, loserUser.EloRating);
+
+				winnerUser.GamesPlayed++;
+				winnerUser.Wins++;
+				winnerUser.EloRating = newRatings.winnerUserNewRating;
+
+				winnerUser.save((err, updatedWinnerUser) => {
+					if (err) {
+						return res.status(500).json({ error: 'Error updating the winner' });
+					}
+
+					loserUser.GamesPlayed++;
+					loserUser.Losses++;
+					loserUser.EloRating = newRatings.loserUserNewRating;
+
+					loserUser.save((err, updatedLoserUser) => {
+						if (err) {
+							return res.status(500).json({ error: 'Error updating the loser' });
+						}
+
+						return res.json({
+							game: recordedGame,
+							winner: updatedWinnerUser,
+							loser: updatedLoserUser,
+						});
+					});
+					
 				});
 			});
 		});
+
+		// User.findOneAndUpdate({ Username: winnerUsername }, { $inc: { GamesPlayed: 1, Wins: 1 }}, (err, winnerUser) => {
+		// 	if (err) {
+		// 		return res.status(500).json({ error: 'Error updating the winner' });
+		// 	}
+		// 	User.findOneAndUpdate({ Username: loserUsername }, { $inc: { GamesPlayed: 1, Losses: 1 }}, (err, loserUser) => {
+		// 		if (err) {
+		// 			return res.status(500).json({ error: 'Error updating the winner' });
+		// 		}
+		// 		return res.json({
+		// 			game: recordedGame,
+		// 			winner: winnerUser,
+		// 			loser: loserUser,
+		// 		});
+		// 	});
+		// });
 	});
 });
 
@@ -280,5 +322,24 @@ router.get('/api/games/:organization/:game', ensureAuthenticatedForApi, (req, re
 //         .type('text')
 //         .send('Not Found');
 // });
+
+/***********************
+*** Helper Functions ***
+***********************/
+// https://en.wikipedia.org/wiki/Elo_rating_system
+const calculateNewEloRatings = (winnerUserEloRating, loserUserEloRating) => {
+	const kFactor = 32;
+	const winnerUserActualScore = 1;
+	const loserUserActualScore = 0;
+	const winnerUserExpectedScore = 1 / (1 + Math.pow(10, (loserUserEloRating - winnerUserEloRating) / 400));
+	const loserUserExpectedScore = 1 / (1 + Math.pow(10, (winnerUserEloRating - loserUserEloRating) / 400));
+	const winnerUserNewRating = Math.round(winnerUserEloRating + kFactor * (winnerUserActualScore - winnerUserExpectedScore));
+	const loserUserNewRating = Math.round(loserUserEloRating + kFactor * (loserUserActualScore - loserUserExpectedScore));
+
+	return {
+		winnerUserNewRating,
+		loserUserNewRating,
+	};
+}
 
 module.exports = router;

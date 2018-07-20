@@ -3,7 +3,7 @@ $(document).ready(function() {
 		.done(function(response) {
 			console.log(response);
 			if (response && response.users && response.users.length) {
-				response.users.sort(function(userA, userB) { return userA.EloRating > userB.EloRating; });
+				response.users.sort(sortUsersByEloRating);
 				var tableOutput = '';
 				for (var i = 0; i < response.users.length; i++) {
 					console.log(response.users[i]);
@@ -27,4 +27,27 @@ $(document).ready(function() {
 	$('#leaderboard-form').on('submit', function(e) {
 		e.preventDefault();
 	});
+
+	// Sorts by EloRating, then GamesPlayed, then Wins, then alphabetically
+	function sortUsersByEloRating(userA, userB) {
+		if (userA.EloRating > userB.EloRating) {
+			return -1;
+		} else if (userA.EloRating < userB.EloRating) {
+			return 1;
+		} else {
+			if (userA.GamesPlayed > userB.GamesPlayed) {
+				return -1;
+			} else if (userA.GamesPlayed < userB.GamesPlayed) {
+				return 1;
+			} else {
+				if (userA.Wins > userB.Wins) {
+					return -1;
+				} else if (userA.Wins < userB.Wins) {
+					return 1;
+				} else {
+					return userA.FirstName > userB.FirstName;
+				}
+			}
+		}
+	}
 });
