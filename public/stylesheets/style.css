@@ -99,3 +99,15 @@ span.control-label {
     display: none;
 }
 
+#leaderboardResultsContainer {
+    margin: 40px auto;
+}
+
+#leaderboardTable {
+    text-align: left;
+}
+
+#leaderboardTable th {
+    font-weight: bold;
+}
+

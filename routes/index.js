@@ -185,7 +185,19 @@ router.post('/api/logout', (req, res, next) => {
 });
 
 router.get('/api/users', ensureAuthenticatedForApi, (req, res, next) => {
-	User.find({}, 'Username FirstName LastName', (err, users) => {
+	User.find({}, 'Username FirstName LastName EloRating GamesPlayed Wins Losses', (err, users) => {
+		if (err) {
+			return res.status(500).json({ error: 'Error getting users' });
+		}
+		return res.json({ users: users });
+	});
+});
+
+router.get('/api/users/:organization', ensureAuthenticatedForApi, (req, res, next) => {
+	if (!req.params.organization) {
+		return res.status(400).json({ error: 'Required fields are missing' });
+	}
+	User.find({ Organization: req.params.organization }, 'Username FirstName LastName EloRating GamesPlayed Wins Losses', (err, users) => {
 		if (err) {
 			return res.status(500).json({ error: 'Error getting users' });
 		}
@@ -194,7 +206,19 @@ router.get('/api/users', ensureAuthenticatedForApi, (req, res, next) => {
 });
 
 router.get('/api/usersExceptMe', ensureAuthenticatedForApi, (req, res, next) => {
-	User.find({ Username: { $ne: req.user.Username } }, 'Username FirstName LastName', (err, users) => {
+	User.find({ Username: { $ne: req.user.Username } }, 'Username FirstName LastName EloRating GamesPlayed Wins Losses', (err, users) => {
+		if (err) {
+			return res.status(500).json({ error: 'Error getting users' });
+		}
+		return res.json({ users: users });
+	});
+});
+
+router.get('/api/usersExceptMe/:organization', ensureAuthenticatedForApi, (req, res, next) => {
+	if (!req.params.organization) {
+		return res.status(400).json({ error: 'Required fields are missing' });
+	}
+	User.find({ Username: { $ne: req.user.Username }, Organization: req.params.organization }, 'Username FirstName LastName EloRating GamesPlayed Wins Losses', (err, users) => {
 		if (err) {
 			return res.status(500).json({ error: 'Error getting users' });
 		}
