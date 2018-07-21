@@ -35,9 +35,8 @@ var User = mongoose.model('User', userSchema);
 
 var gameSchema = new mongoose.Schema({
 	Organization: String,
-	PlayerOne: String,
-	PlayerTwo: String,
 	Winner: String,
+	Loser: String,
 	RecordedBy: String,
 	DateRecorded: Date,
 });
@@ -140,6 +139,7 @@ router.get('/logout', ensureAuthenticated, (req, res) => {
 /***********************
 *** API Requests *******
 ***********************/
+// Register a new user
 router.post('/api/register', (req, res, next) => {
 	if (req && req.body && (!req.body.organization || !req.body.firstName || !req.body.lastName || !req.body.username || !req.body.password)) {
 		return res.status(400).json({ error: 'Required fields are missing' });
@@ -175,24 +175,28 @@ passport.authenticate('local', {
 	successRedirect: '/leaderboard',
 }));
 
+// Log in
 router.post('/api/login', passport.authenticate('local', {
 	successRedirect: '/recordGame',
 }));
 
+// Log out
 router.post('/api/logout', (req, res, next) => {
     req.logout();
     return res.redirect('/');
 });
 
+// Get all users
 router.get('/api/users', ensureAuthenticatedForApi, (req, res, next) => {
 	User.find({}, 'Username FirstName LastName EloRating GamesPlayed Wins Losses', (err, users) => {
 		if (err) {
 			return res.status(500).json({ error: 'Error getting users' });
 		}
-		return res.json({ users: users });
+		return res.json({ users });
 	});
 });
 
+// Get all users for a specified organization
 router.get('/api/users/:organization', ensureAuthenticatedForApi, (req, res, next) => {
 	if (!req.params.organization) {
 		return res.status(400).json({ error: 'Required fields are missing' });
@@ -201,19 +205,21 @@ router.get('/api/users/:organization', ensureAuthenticatedForApi, (req, res, nex
 		if (err) {
 			return res.status(500).json({ error: 'Error getting users' });
 		}
-		return res.json({ users: users });
+		return res.json({ users });
 	});
 });
 
+// Get all users except the user making the request
 router.get('/api/usersExceptMe', ensureAuthenticatedForApi, (req, res, next) => {
 	User.find({ Username: { $ne: req.user.Username } }, 'Username FirstName LastName EloRating GamesPlayed Wins Losses', (err, users) => {
 		if (err) {
 			return res.status(500).json({ error: 'Error getting users' });
 		}
-		return res.json({ users: users });
+		return res.json({ users });
 	});
 });
 
+// Get all users for a specified organization except the user making the request
 router.get('/api/usersExceptMe/:organization', ensureAuthenticatedForApi, (req, res, next) => {
 	if (!req.params.organization) {
 		return res.status(400).json({ error: 'Required fields are missing' });
@@ -222,10 +228,11 @@ router.get('/api/usersExceptMe/:organization', ensureAuthenticatedForApi, (req, 
 		if (err) {
 			return res.status(500).json({ error: 'Error getting users' });
 		}
-		return res.json({ users: users });
+		return res.json({ users });
 	});
 });
 
+// Record a new game
 router.post('/api/recordGame', ensureAuthenticatedForApi, (req, res, next) => {
 	if (req && req.body && (!req.body.organization || !req.body.opponent || !req.body.winner)) {
 		return res.status(400).json({ error: 'Required fields are missing' });
@@ -234,9 +241,8 @@ router.post('/api/recordGame', ensureAuthenticatedForApi, (req, res, next) => {
 	const loserUsername = req.body.winner === 'won' ? req.body.opponent : req.user.Username;
 	var newGame = new Game({
 		Organization: req.body.organization,
-		PlayerOne: req.user.Username,
-		PlayerTwo: req.body.opponent,
 		Winner: winnerUsername,
+		Loser: loserUsername,
 		RecordedBy: req.user.Username,
 		DateRecorded: new Date(),
 	});
@@ -287,6 +293,17 @@ router.post('/api/recordGame', ensureAuthenticatedForApi, (req, res, next) => {
 	});
 });
 
+// Get all recorded games
+router.get('/api/games', ensureAuthenticatedForApi, (req, res, next) => {
+	Game.find({}, (err, games) => {
+		if (err) {
+			return res.status(500).json({ error: 'Error getting games' });
+		}
+		return res.json({ games });
+	});
+});
+
+// Get all recorded games for an organization
 router.get('/api/games/:organization', ensureAuthenticatedForApi, (req, res, next) => {
 	if (!req.params.organization) {
 		return res.status(400).json({ error: 'Required fields are missing' });
@@ -295,13 +312,98 @@ router.get('/api/games/:organization', ensureAuthenticatedForApi, (req, res, nex
 		if (err) {
 			return res.status(500).json({ error: 'Error getting games' });
 		}
-		return res.json({ games: games });
+		return res.json({ games });
+	});
+});
+
+// Validate that the current ratings and data are correct for each user based on the recorded games in the database
+router.get('/api/validateCurrentRatings/:organization', (req, res, next) => {
+	if (!req.params.organization) {
+		return res.status(400).json({ error: 'Required fields are missing' });
+	}
+	User.find({ Organization: req.params.organization }, 'Username FirstName LastName EloRating GamesPlayed Wins Losses', (err, users) => {
+		if (err) {
+			return res.status(500).json({ error: 'Error getting users' });
+		}
+
+		const recordedData = users.reduce((result, user) => ({
+			...result,
+			[user.Username]: {
+				EloRating: user.EloRating,
+				GamesPlayed: user.GamesPlayed,
+				Wins: user.Wins,
+				Losses: user.Losses,
+			},
+		}), {});
+
+		const calculatedData = users.reduce((result, user) => ({
+			...result,
+			[user.Username]: {
+				EloRating: 1200,
+				GamesPlayed: 0,
+				Wins: 0,
+				Losses: 0,
+			},
+		}), {});
+
+		Game.find({ Organization: req.params.organization }, null, { sort: { DateRecorded: 1 } }, (err, games) => {
+			if (err) {
+				return res.status(500).json({ error: 'Error getting games' });
+			}
+
+			games.forEach(game => {
+				const newRatings = calculateNewEloRatings(calculatedData[game.Winner].EloRating, calculatedData[game.Loser].EloRating);
+				calculatedData[game.Winner] = {
+					EloRating: newRatings.winnerUserNewRating,
+					GamesPlayed: calculatedData[game.Winner].GamesPlayed + 1,
+					Wins: calculatedData[game.Winner].Wins + 1,
+					Losses: calculatedData[game.Winner].Losses,
+				};
+				calculatedData[game.Loser] = {
+					EloRating: newRatings.loserUserNewRating,
+					GamesPlayed: calculatedData[game.Loser].GamesPlayed + 1,
+					Wins: calculatedData[game.Loser].Wins,
+					Losses: calculatedData[game.Loser].Losses + 1,
+				};
+			});
+
+			let dataMatchesCorrectly = true;
+			for (user in calculatedData) {
+				for (key in calculatedData[user]) {
+					if (calculatedData[user][key] !== recordedData[user][key]) {
+						dataMatchesCorrectly = false;
+					}
+				}
+			}
+
+			if (!dataMatchesCorrectly && req.query.update === 'true') {
+				users.forEach(user => {
+					user.EloRating = calculatedData[user.Username].EloRating;
+					user.GamesPlayed = calculatedData[user.Username].GamesPlayed;
+					user.Wins = calculatedData[user.Username].Wins;
+					user.Losses = calculatedData[user.Username].Losses;
+					user.save((err, savedUser) => {
+						if (err) {
+							return res.status(500).json({ error: 'Error saving the user: ' + user.Username });
+						}
+					})
+				})
+			}
+
+			return res.json({
+				recordedData,
+				calculatedData,
+				dataMatchesCorrectly,
+				dataWasUpdated: !dataMatchesCorrectly && req.query.update === 'true',
+			});
+		});
 	});
 });
 
 /***********************
 *** Helper Functions ***
 ***********************/
+// Calculate the Elo rating for the winner and loser of a game based on their current ratings
 // https://en.wikipedia.org/wiki/Elo_rating_system
 const calculateNewEloRatings = (winnerUserEloRating, loserUserEloRating) => {
 	const kFactor = 32;
