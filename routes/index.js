@@ -35,7 +35,6 @@ var User = mongoose.model('User', userSchema);
 
 var gameSchema = new mongoose.Schema({
 	Organization: String,
-	Game: String,
 	PlayerOne: String,
 	PlayerTwo: String,
 	Winner: String,
@@ -66,20 +65,18 @@ passport.deserializeUser((id, done) => {
 passport.use(new LocalStrategy(
     function(username, password, done) {
         User.findOne({ Username: username }, function(err, user) {
-            console.log('User ' + username + ' attempted to log in.');
             if (err) {
-            	console.log('there was an error authenticating');
+            	console.log('Error authenticating when ' + username + ' attempted to log in');
                 return done(err);
             }
             if (!user) {
-            	console.log('the user was not found');
+            	console.log('Username "' + username + '" was not found');
                 return done(null, false, { message: 'Username or password is incorrect' });
             }
             if (!bcrypt.compareSync(password, user.Password)) {
-            	console.log('the passwords did not match');
+            	console.log('Incorrect password for ' + username);
                 return done(null, false, { message: 'Username or password is incorrect' });
             }
-            console.log('success logging in!');
             return done(null, user);
         });
     }
@@ -87,7 +84,7 @@ passport.use(new LocalStrategy(
 
 // Helper auth method to ensure that the user is currently logged in
 // If they are not logged in, redirect to the home page
-function ensureAuthenticated(req, res, next) {
+const ensureAuthenticated = (req, res, next) => {
     if (req.isAuthenticated()) {
         return next();
     }
@@ -96,7 +93,7 @@ function ensureAuthenticated(req, res, next) {
 
 // Helper auth method to ensure that the user is NOT currently logged in
 // If they are logged in, redirect to the leaderboard page
-function ensureNotAuthenticated(req, res, next) {
+const ensureNotAuthenticated = (req, res, next) => {
     if (!req.isAuthenticated()) {
         return next();
     }
@@ -105,37 +102,37 @@ function ensureNotAuthenticated(req, res, next) {
 
 // Helper auth method to ensure that the user is currently logged in when making API requests
 // If they are not logged in, send an unauthorized error
-function ensureAuthenticatedForApi(req, res, next) {
+const ensureAuthenticatedForApi = (req, res, next) => {
     if (req.isAuthenticated()) {
         return next();
     }
-    return res.status(401).json({ error: 'You are currently logged in' });
+    return res.status(401).json({ error: 'You are not currently logged in' });
 };
 
 /***********************
 *** Views **************
 ***********************/
-router.get('/', ensureNotAuthenticated, function(req, res) {
+router.get('/', ensureNotAuthenticated, (req, res) => {
 	res.sendFile('index.html', { root:  'public' });
 });
 
-router.get('/login', ensureNotAuthenticated, function(req, res) {
+router.get('/login', ensureNotAuthenticated, (req, res) => {
 	res.sendFile('index.html', { root:  'public/login' });
 });
 
-router.get('/register', ensureNotAuthenticated, function(req, res) {
+router.get('/register', ensureNotAuthenticated, (req, res) => {
 	res.sendFile('index.html', { root:  'public/register' });
 });
 
-router.get('/leaderboard', ensureAuthenticated, function(req, res) {
+router.get('/leaderboard', ensureAuthenticated, (req, res) => {
 	res.sendFile('index.html', { root:  'public/leaderboard' });
 });
 
-router.get('/recordGame', ensureAuthenticated, function(req, res) {
+router.get('/recordGame', ensureAuthenticated, (req, res) => {
 	res.sendFile('index.html', { root:  'public/recordGame' });
 });
 
-router.get('/logout', ensureAuthenticated, function(req, res) {
+router.get('/logout', ensureAuthenticated, (req, res) => {
 	res.sendFile('index.html', { root:  'public/logout' });
 });
 
@@ -144,10 +141,13 @@ router.get('/logout', ensureAuthenticated, function(req, res) {
 *** API Requests *******
 ***********************/
 router.post('/api/register', (req, res, next) => {
+	if (req && req.body && (!req.body.organization || !req.body.firstName || !req.body.lastName || !req.body.username || !req.body.password)) {
+		return res.status(400).json({ error: 'Required fields are missing' });
+	}
     var hash = bcrypt.hashSync(req.body.password, 8);
-    User.findOne({ Username: req.body.username }, function(err, user) {
+    User.findOne({ Username: req.body.username }, (err, user) => {
         if (err) {
-            next(err);
+            return next(err);
         } else if (user) {
             return res.status(401).json({ error: 'Username already exists' });
         } else {
@@ -162,7 +162,7 @@ router.post('/api/register', (req, res, next) => {
         		Wins: 0,
         		Losses: 0,
         	});
-        	newUser.save(function(err, createdUser) {
+        	newUser.save((err, createdUser) => {
 				if (err) {
 					return res.status(500).json({ error: 'Error saving new user' });
 				}
@@ -227,14 +227,13 @@ router.get('/api/usersExceptMe/:organization', ensureAuthenticatedForApi, (req, 
 });
 
 router.post('/api/recordGame', ensureAuthenticatedForApi, (req, res, next) => {
-	if (req && req.body && (!req.body.organization || !req.body.game || !req.body.opponent || !req.body.winner)) {
+	if (req && req.body && (!req.body.organization || !req.body.opponent || !req.body.winner)) {
 		return res.status(400).json({ error: 'Required fields are missing' });
 	}
 	const winnerUsername = req.body.winner === 'won' ? req.user.Username : req.body.opponent;
 	const loserUsername = req.body.winner === 'won' ? req.body.opponent : req.user.Username;
 	var newGame = new Game({
 		Organization: req.body.organization,
-		Game: req.body.game,
 		PlayerOne: req.user.Username,
 		PlayerTwo: req.body.opponent,
 		Winner: winnerUsername,
@@ -282,30 +281,23 @@ router.post('/api/recordGame', ensureAuthenticatedForApi, (req, res, next) => {
 							loser: updatedLoserUser,
 						});
 					});
-					
 				});
 			});
 		});
 	});
 });
 
-router.get('/api/games/:organization/:game', ensureAuthenticatedForApi, (req, res, next) => {
-	if (!req.params.organization || !req.params.game) {
+router.get('/api/games/:organization', ensureAuthenticatedForApi, (req, res, next) => {
+	if (!req.params.organization) {
 		return res.status(400).json({ error: 'Required fields are missing' });
 	}
-	Game.find({ Organization: req.params.organization, Game: req.params.game }, (err, games) => {
+	Game.find({ Organization: req.params.organization }, (err, games) => {
 		if (err) {
 			return res.status(500).json({ error: 'Error getting games' });
 		}
 		return res.json({ games: games });
 	});
 });
-
-// router.use((req, res, next) => {
-//     res.status(404)
-//         .type('text')
-//         .send('Not Found');
-// });
 
 /***********************
 *** Helper Functions ***

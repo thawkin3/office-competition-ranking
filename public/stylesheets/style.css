@@ -109,3 +109,8 @@ span.control-label {
 #leaderboardTable th {
     font-weight: bold;
 }
+
+.noResultsTable {
+    text-align: center;
+    padding: 20px;
+}

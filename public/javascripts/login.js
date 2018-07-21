@@ -4,16 +4,18 @@ $(document).ready(function() {
 		$('#loginErrorHelpBlock').hide();
 		$('#username, #password').parent().removeClass('has-error');
 
+		// Data to save
 		var jsonData = {
 			username: $('#username').val(),
 			password: $('#password').val(),
 		};
 
+		// Log in the user
 		return $.post('/api/login', jsonData)
-			.done(function(response) {
+			.done(function() {
 				window.location.href = '/recordGame';
 			})
-			.fail(function(xhr, status, error) {
+			.fail(function() {
 				$('#loginErrorHelpBlock').show();
 				$('#username, #password').parent().addClass('has-error');
 			});
