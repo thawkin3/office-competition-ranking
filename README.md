@@ -16,9 +16,9 @@ The Elo rating is a simple rating algorithm used in chess and some other sports 
 ## Cloning the repo
 If you'd like to clone this repo and run this app on your own server, go ahead! After cloning the repo you'll need to do the following:
 - `npm install` to get all the Node modules
-- create an `.env` file to store your SESSION_SECRET and your DB_CONNECTION
-- create a MongoDB database called `officeCompetitionRankingDB`
+- create a MongoDB database
 - create a `users` collection and a `games` collection within that database
+- create an `.env` file to store your SESSION_SECRET and your DB_CONNECTION
 
 ## Feature requests and bug reports
 If you've found a bug or would like to request a feature, please file an issue on this repo. PRs are welcome!
