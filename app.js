@@ -3,6 +3,7 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var envConfig = require('dotenv').config();
 
 var indexRouter = require('./routes/index');
 
@@ -14,9 +15,7 @@ app.set('view engine', 'jade');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-console.log('SESSION_SECRET:', process.env.SESSION_SECRET);
-// app.use(cookieParser(process.env.SESSION_SECRET));
-app.use(cookieParser('mysecret'));
+app.use(cookieParser(process.env.SESSION_SECRET));
 
 app.use('/', indexRouter);
 app.use(express.static(path.join(__dirname, 'public')));

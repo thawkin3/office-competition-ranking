@@ -5,11 +5,12 @@ var express = require('express');
 var router = express.Router();
 var mongoose = require('mongoose');
 const session = require('express-session');
+var envConfig = require('dotenv').config();
 
 /***********************
 *** Mongoose ***********
 ***********************/
-mongoose.connect('mongodb://localhost/officeCompetitionRankingDB');
+mongoose.connect(process.env.DB_CONNECTION);
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', function() {
