@@ -7,6 +7,9 @@ var mongoose = require('mongoose');
 const session = require('express-session');
 var envConfig = require('dotenv').config();
 
+const User = require('../models/User');
+const Game = require('../models/Game');
+
 /***********************
 *** Mongoose ***********
 ***********************/
@@ -16,33 +19,6 @@ db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', function() {
 	console.log('Connected to MongoDB');
 });
-
-/***********************
-*** Schemas and Models *
-***********************/
-var userSchema = new mongoose.Schema({
-	Username: String,
-	Password: String,
-	FirstName: String,
-	LastName: String,
-	Organization: String,
-	EloRating: Number,
-	GamesPlayed: Number,
-	Wins: Number,
-	Losses: Number,
-});
-
-var User = mongoose.model('User', userSchema);
-
-var gameSchema = new mongoose.Schema({
-	Organization: String,
-	Winner: String,
-	Loser: String,
-	RecordedBy: String,
-	DateRecorded: Date,
-});
-
-var Game = mongoose.model('Game', gameSchema);
 
 /***********************
 *** Authentication *****
