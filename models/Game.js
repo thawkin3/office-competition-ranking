@@ -1,6 +1,6 @@
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
 
-var gameSchema = new mongoose.Schema({
+const gameSchema = new mongoose.Schema({
 	Organization: String,
 	Winner: String,
 	Loser: String,
@@ -8,6 +8,6 @@ var gameSchema = new mongoose.Schema({
 	DateRecorded: Date,
 });
 
-var Game = mongoose.model('Game', gameSchema);
+const Game = mongoose.model('Game', gameSchema);
 
 module.exports = Game;

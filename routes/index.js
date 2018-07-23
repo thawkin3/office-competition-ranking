@@ -1,11 +1,11 @@
 const passport = require('passport');
 const LocalStrategy = require('passport-local');
 const bcrypt = require('bcrypt');
-var express = require('express');
-var router = express.Router();
-var mongoose = require('mongoose');
+const express = require('express');
+const router = express.Router();
+const mongoose = require('mongoose');
 const session = require('express-session');
-var envConfig = require('dotenv').config();
+const envConfig = require('dotenv').config();
 
 const User = require('../models/User');
 const Game = require('../models/Game');
@@ -14,7 +14,7 @@ const Game = require('../models/Game');
 *** Mongoose ***********
 ***********************/
 mongoose.connect(process.env.DB_CONNECTION);
-var db = mongoose.connection;
+const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', function() {
 	console.log('Connected to MongoDB');
@@ -121,14 +121,14 @@ router.post('/api/register', (req, res, next) => {
 	if (req && req.body && (!req.body.organization || !req.body.firstName || !req.body.lastName || !req.body.username || !req.body.password)) {
 		return res.status(400).json({ error: 'Required fields are missing' });
 	}
-    var hash = bcrypt.hashSync(req.body.password, 8);
+    const hash = bcrypt.hashSync(req.body.password, 8);
     User.findOne({ Username: req.body.username }, (err, user) => {
         if (err) {
             return next(err);
         } else if (user) {
             return res.status(401).json({ error: 'Username already exists' });
         } else {
-        	var newUser = new User({
+        	const newUser = new User({
         		Organization: req.body.organization,
         		FirstName: req.body.firstName,
         		LastName: req.body.lastName,
@@ -216,7 +216,7 @@ router.post('/api/recordGame', ensureAuthenticatedForApi, (req, res, next) => {
 	}
 	const winnerUsername = req.body.winner === 'won' ? req.user.Username : req.body.opponent;
 	const loserUsername = req.body.winner === 'won' ? req.body.opponent : req.user.Username;
-	var newGame = new Game({
+	const newGame = new Game({
 		Organization: req.body.organization,
 		Winner: winnerUsername,
 		Loser: loserUsername,
