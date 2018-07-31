@@ -23,6 +23,7 @@ $(document).ready(function() {
 			$.get('/api/usersExceptMe/' + e.target.value)
 				.done(function(response) {
 					if (response && response.users) {
+						response.users.sort(function(userA, userB) { return userA.Username > userB.Username; });
 						var selectMenuHtml = '<option disabled selected value>Select an opponent</option>';
 						for (var i = 0; i < response.users.length; i++) {
 							selectMenuHtml += '<option value="' + response.users[i].Username + '">' + response.users[i].Username + ' (' + response.users[i].FirstName + ' ' + response.users[i].LastName + ')' + '</option>';
