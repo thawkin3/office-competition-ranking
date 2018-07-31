@@ -100,6 +100,8 @@ span.control-label {
 
 #leaderboardResultsContainer {
     margin: 40px auto;
+    overflow: hidden;
+    overflow-x: scroll;
 }
 
 #leaderboardTable {
@@ -108,6 +110,15 @@ span.control-label {
 
 #leaderboardTable th {
     font-weight: bold;
+}
+
+#leaderboardTable.table>tbody>tr>td {
+    vertical-align: middle;;
+}
+
+#leaderboardTable td.name .username {
+    display: block;
+    font-size: 10px;
 }
 
 .noResultsTable {
