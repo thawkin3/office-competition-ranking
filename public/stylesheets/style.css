@@ -110,6 +110,15 @@ span.control-label {
     font-weight: bold;
 }
 
+#leaderboardTable.table>tbody>tr>td {
+    vertical-align: middle;;
+}
+
+#leaderboardTable td.name .username {
+    display: block;
+    font-size: 10px;
+}
+
 .noResultsTable {
     text-align: center;
     padding: 20px;
