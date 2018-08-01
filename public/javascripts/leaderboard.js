@@ -15,7 +15,7 @@ $(document).ready(function() {
 						for (var i = 0; i < response.users.length; i++) {
 							tableOutput += '<tr>' +
 									'<td class="rank">' + (i + 1) + '</td>' +
-									'<td class="name">' + response.users[i].FirstName + ' ' + response.users[i].LastName + '<span class="username">' + response.users[i].Username + '</span></td>' +
+									'<td class="name">' + response.users[i].FirstName + ' ' + response.users[i].LastName + '<span class="username"><a href="/history/' + response.users[i].Username + '">' + response.users[i].Username + '</a></span></td>' +
 									'<td class="rating">' + response.users[i].EloRating + '</td>' +
 									'<td class="gamesPlayed">' + response.users[i].GamesPlayed + '</td>' +
 									'<td class="wins">' + response.users[i].Wins + '</td>' +

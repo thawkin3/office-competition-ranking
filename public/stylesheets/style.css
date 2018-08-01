@@ -98,25 +98,26 @@ span.control-label {
     display: none;
 }
 
-#leaderboardResultsContainer {
+#leaderboardResultsContainer,
+#gameHistoryResultsContainer {
     margin: 40px auto;
     overflow: hidden;
     overflow-x: scroll;
 }
 
-#leaderboardTable {
+table {
     text-align: left;
 }
 
-#leaderboardTable th {
+table th {
     font-weight: bold;
 }
 
-#leaderboardTable.table>tbody>tr>td {
-    vertical-align: middle;;
+table.table>tbody>tr>td {
+    vertical-align: middle;
 }
 
-#leaderboardTable td.name .username {
+table td.name .username {
     display: block;
     font-size: 10px;
 }
@@ -124,4 +125,19 @@ span.control-label {
 .noResultsTable {
     text-align: center;
     padding: 20px;
+}
+
+#gameHistoryTable {
+    margin: auto;
+    text-align: center;
+}
+
+#gameHistoryTable th,
+#gameHistoryTable td {
+    text-align: center;
+}
+
+#aggregateStats {
+    margin: 0 auto 20px auto;
+    text-align: center;
 }

@@ -26,6 +26,10 @@ router.get('/recordGame', auth.ensureAuthenticated, (req, res) => {
 	res.sendFile('index.html', { root:  'public/recordGame' });
 });
 
+router.get('/history/:user', auth.ensureAuthenticated, (req, res) => {
+	res.sendFile('index.html', { root:  'public/history' });
+});
+
 router.get('/logout', auth.ensureAuthenticated, (req, res) => {
 	res.sendFile('index.html', { root:  'public/logout' });
 });
