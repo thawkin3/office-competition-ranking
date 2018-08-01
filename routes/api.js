@@ -167,7 +167,7 @@ router.post('/recordGame', auth.ensureAuthenticatedForApi, (req, res, next) => {
 
 // Get all recorded games
 router.get('/games', auth.ensureAuthenticatedForApi, (req, res, next) => {
-	Game.find({}, (err, games) => {
+	Game.find({}, null, { sort: { DateRecorded: -1 }}, (err, games) => {
 		if (err) {
 			return res.status(500).json({ error: 'Error getting games' });
 		}
@@ -180,9 +180,22 @@ router.get('/games/:organization', auth.ensureAuthenticatedForApi, (req, res, ne
 	if (!req.params.organization) {
 		return res.status(400).json({ error: 'Required fields are missing' });
 	}
-	Game.find({ Organization: req.params.organization }, (err, games) => {
+	Game.find({ Organization: req.params.organization }, null, { sort: { DateRecorded: -1 }}, (err, games) => {
 		if (err) {
 			return res.status(500).json({ error: 'Error getting games' });
+		}
+		return res.json({ games });
+	});
+});
+
+// Get all recorded games for a user
+router.get('/games/:organization/:user', auth.ensureAuthenticatedForApi, (req, res, next) => {
+	if (!req.params.organization || !req.params.user) {
+		return res.status(400).json({ error: 'Required fields are missing' });
+	}
+	Game.find({ Organization: req.params.organization, $or:[{ Winner: req.params.user }, { Loser: req.params.user }] }, null, { sort: { DateRecorded: -1 }}, (err, games) => {
+		if (err) {
+			return res.status(500).json({ error: 'Error getting games for this user' });
 		}
 		return res.json({ games });
 	});
@@ -258,8 +271,8 @@ router.get('/validateCurrentRatings/:organization', (req, res, next) => {
 						if (err) {
 							return res.status(500).json({ error: 'Error saving the user: ' + user.Username });
 						}
-					})
-				})
+					});
+				});
 			}
 
 			return res.json({
